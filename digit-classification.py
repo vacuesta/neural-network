@@ -1,4 +1,5 @@
-%matplotlib inline
+#%matplotlib inline
+import model
 import torch
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
@@ -15,7 +16,7 @@ import torchvision.transforms as transforms
 #Because we are running this program with a CPU
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-#training ser of 60,000
+#training set of 60,000
 train_dataset = torchvision.datasets.MNIST(root='./data',train=True, transform=transforms.ToTensor(), download=True)
 #print(len(train_dataset))
 
@@ -58,12 +59,12 @@ class Neural_Network(nn.Module):
         
         
 
-model = Neural_Network() #Our class
+model1 = Neural_Network() #Our class
 criterion = nn.NLLLoss() #our cost function. there are many more but this one is good for multiple classes
-optimizer = optim.Adam(model.parameters(), lr=.05) #our optimizer object for our weights
+optimizer = optim.Adadelta(model1.parameters(), lr=.05) #our optimizer object for our weights
 epochs = 5
 
-model.to(device)
+model1.to(device)
 
 #Training
 for i in range(epochs):
@@ -71,7 +72,7 @@ for i in range(epochs):
     for images, target in train_loader:
         images,target = images.to(device), target.to(device)
         
-        inputs = model(images)
+        inputs = model1(images)
         loss = criterion(inputs, target)
         
         optimizer.zero_grad()
@@ -82,6 +83,25 @@ for i in range(epochs):
     else:
         print("output {}".format(running_loss))
         
+# Test the model
+# In test phase, we don't need to compute gradients (for memory efficiency)
+        
+
+with model.train():
+    correct = 0
+    total = 0
+
+    for images, labels in test_loader:
+        images = images.reshape(-1, 28*28)
+        labels = labels
+        outputs = model1(images)
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+        
+
+        
+    print("Accuracy of the network on the 10000 test images: {} ".format(100 * correct / total))
         
         
         
